@@ -59,3 +59,82 @@ The MVP will classify **bike brand only** (e.g., Specialized, Trek, Giant, Santa
 ## 5. Dataset Structure
 
 ### 5.1 Folder Layout (MVP)
+/dataset
+/raw
+/specialized
+/trek
+/giant
+/santacruz
+/processed
+/train
+/val
+/test
+
+### 5.2 Train/Val/Test Split
+- Train: 70%
+- Validation: 15%
+- Test: 15%
+
+---
+
+## 6. Labeling Strategy
+
+### 6.1 MVP Labeling
+- Folder-based labeling (Azure Vision supports this)
+- Each folder = one brand
+- No bounding boxes or segmentation required
+
+### 6.2 Future Labeling
+- Model-level labels
+- Frame material
+- Suspension type
+- Geometry metadata (if available)
+
+---
+
+## 7. Quality Standards
+
+### 7.1 Image Requirements
+- Minimum resolution: 600px on shortest side
+- No watermarks if possible
+- No riders in frame (MVP)
+- Bike must be at least 60% of the image
+
+### 7.2 Dataset Quality Checks
+- Remove duplicates
+- Remove blurry images
+- Ensure class balance (±20%)
+
+---
+
+## 8. Risks & Mitigations
+
+### **Risk 1: Class imbalance**
+- *Mitigation:* Oversample minority classes or collect more images.
+
+### **Risk 2: Low-quality or inconsistent images**
+- *Mitigation:* Manual review; enforce quality standards.
+
+### **Risk 3: Copyright concerns**
+- *Mitigation:* Use publicly available product images; avoid scraping protected content.
+
+### **Risk 4: Overfitting to studio photos**
+- *Mitigation:* Add real-world images in future iterations.
+
+---
+
+## 9. Acceptance Criteria (MVP)
+
+- Dataset contains at least 50 images per brand
+- All images meet quality standards
+- Train/val/test split completed
+- Folder structure matches architecture outline
+- Dataset is ready for Azure Vision ingestion
+
+---
+
+## 10. Next Steps
+
+- Begin manual image collection
+- Create dataset folder structure in repo (or local)
+- Prepare for Azure Vision baseline model training
