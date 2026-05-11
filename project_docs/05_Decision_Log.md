@@ -58,3 +58,15 @@ Each entry includes the decision, the context, and the rationale.
 **Context:** Early project phase; no code yet.  
 **Decision:** Avoid premature folder complexity.  
 **Rationale:** Keeps repo clean; prevents organizational debt before it’s needed.
+
+---
+
+## Decision: Create Dataset Plan as Next PM Artifact
+**Date:** 2026-05-10  
+**Context:** After completing the Architecture Outline and Roadmap, the next logical PM artifact was needed to support the upcoming model development phase.  
+**Decision:** Create a dedicated Dataset Plan to define data sources, structure, quality standards, and risks.  
+**Alternatives Considered:**  
+- Jump directly into model training (rejected: unclear data requirements)  
+- Begin Kanban setup first (rejected: lower priority than data clarity)  
+**Rationale:** A clear dataset strategy reduces rework, aligns with PMP best practices, and supports a clean MVP path.
+
