@@ -65,4 +65,32 @@ To prevent colour-based bias:
 ---
 
 ## 7. Folder Structure
+/data
+/raw
+/specialized_enduro_2020+
+/santacruz_nomad_v6
+/trek_slash_gen6
+/giant_reign_2020+
+/yt_capra_2021+
+/processed
+/train
+/val
+/test
+/golden
+/specialized_enduro
+/santacruz_nomad
+/trek_slash
+/giant_reign
+/yt_capra
+
+
+---
+
+## 8. Approval Criteria
+The dataset is considered ready when:
+
+- All images meet silhouette and generation requirements
+- Colour diversity is confirmed
+- Baseline Azure Vision validation shows consistent detection
+- No class is underrepresented
 
