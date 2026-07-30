@@ -4,6 +4,7 @@
 
 from fastapi import FastAPI
 from src.inference.baseline_inference import run_inference
+from src.logging.logger import log_event
 
 app = FastAPI()
 
