@@ -33,3 +33,36 @@ A simple end-to-end system for classifying images of mountain bikes, starting wi
 - More polished UI.
 - Automated dataset ingestion and labeling tools.
 - Model explainability (saliency maps, feature importance).
+
+## Architecture Diagram (Text-Based)
+
+This diagram summarizes how the system components interact in the MVP architecture.
+
+### Component Interaction Flow
+[User]
+↓
+[UI: index.html]
+↓ (image upload)
+[API: /predict]
+↓ (calls inference)
+[Inference Pipeline]
+↓ (logs events)
+[Logger]
+↓
+[API returns prediction]
+↓
+[UI displays result]
+
+
+### Module Relationships
+
+- **UI** → Sends image data to API
+- **API** → Validates request, forwards to inference
+- **Inference** → Runs baseline model, returns prediction
+- **Logging** → Records events for debugging and future monitoring
+
+### Notes
+- This diagram reflects the current scaffolds (UI, API, inference, logging).
+- It will expand once the model is trained and real inference logic is added.
+
+
