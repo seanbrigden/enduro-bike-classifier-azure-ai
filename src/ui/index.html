@@ -1,6 +1,4 @@
 <!-- index.html -->
-<!-- Placeholder UI for image upload and prediction -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,15 +6,54 @@
     <title>Enduro Bike Classifier</title>
 </head>
 <body>
-    <h1>Enduro Bike Classifier (UI Scaffold)</h1>
+    <h1>Enduro Bike Classifier</h1>
 
-    <p>This is a placeholder UI. Image upload and prediction results will be implemented once the API and model are connected.</p>
+    <p>Upload an image to get a prediction from the API.</p>
 
-    <form>
+    <form id="upload-form">
         <label for="image">Upload an image:</label><br><br>
         <input type="file" id="image" name="image" accept="image/*">
         <br><br>
-        <button type="button">Predict (Not Implemented)</button>
+        <button type="button" id="predict-btn">Predict</button>
     </form>
+
+    <h3>Result:</h3>
+    <pre id="result">No prediction yet.</pre>
+
+    <script>
+        document.getElementById("predict-btn").addEventListener("click", async () => {
+            const fileInput = document.getElementById("image");
+            const resultBox = document.getElementById("result");
+
+            if (!fileInput.files.length) {
+                resultBox.textContent = "Please upload an image first.";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            resultBox.textContent = "Predicting...";
+
+            try {
+                const response = await fetch("http://localhost:8000/predict", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    resultBox.textContent = "Error: " + response.statusText;
+                    return;
+                }
+
+                const data = await response.json();
+                resultBox.textContent = JSON.stringify(data, null, 2);
+
+            } catch (error) {
+                resultBox.textContent = "Error: " + error.message;
+            }
+        });
+    </script>
 </body>
 </html>
+
