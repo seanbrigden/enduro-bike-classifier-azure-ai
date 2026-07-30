@@ -1,7 +1,9 @@
+
 # app.py
 # Placeholder API for serving model inference
 
 from fastapi import FastAPI
+from src.inference.baseline_inference import run_inference
 
 app = FastAPI()
 
