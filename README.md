@@ -100,43 +100,39 @@ Dataset imbalance (Nomad < Enduro)
 
 Limited generational coverage (V6 only)
 
-8. Roadmap
+## 8. Roadmap
 This roadmap reflects the project’s evolution from concept → MVP → scalable product.
 
-Completed
-☑ Project Charter
+### Completed
+☑ Project Charter  
+☑ Scope Statement  
+☑ Requirements  
+☑ Risk Register  
+☑ Decision Log  
+☑ Architecture Outline  
+☑ Architecture Diagram  
+☑ Inference Scaffold  
+☑ API Scaffold  
+☑ UI Scaffold  
+☑ Logging Scaffold  
 
-☑ Scope Statement
-
-☑ Requirements
-
-☑ Risk Register
-
-☑ Decision Log
-
-☑ Architecture Outline
-
-In Progress
-☐ Dataset Plan
-
-☐ Baseline Model (Azure Vision)
-
-☐ Inference API
-
-☐ Minimal UI Prototype
-
-☐ Logging & Monitoring
-
+### In Progress
+☐ Dataset Plan  
+☐ Baseline Model (Azure Vision)  
+☐ Inference API Wiring (connect to real model)  
+☐ Minimal UI Wiring (JS → API)  
+☐ Logging Integration (real events)  
 ☐ README Formatting & Presentation Cleanup (spacing, hierarchy, diagrams)
 
-Future
-☐ Custom Model Training (multi‑brand, multi‑model)
+### Future
+☐ Custom Model Training (multi‑brand, multi‑model)  
+☐ Marketplace integration  
+☐ Fraud‑detection heuristics  
+☐ Feedback loop for continuous improvement  
+☐ Deployment (Azure App Service / Static Web Apps)  
+☐ Monitoring dashboards (Azure Monitor)  
 
-☐ Marketplace integration
-
-☐ Fraud‑detection heuristics
-
-☐ Feedback loop for continuous improvement
+For the full development roadmap, see [project_docs/08_Roadmap.md](project_docs/08_Roadmap.md).
 
 9. Status
 This is an early‑stage MVP.
