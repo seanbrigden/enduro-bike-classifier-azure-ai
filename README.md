@@ -100,7 +100,35 @@ Dataset imbalance (Nomad < Enduro)
 
 Limited generational coverage (V6 only)
 
-## 8. Roadmap
+## 7. Folder Structure
+
+The repository is organized into clear, modular components to support maintainability and future expansion.
+project_root/
+├── src/
+│   ├── api/
+│   │   └── app.py                 # FastAPI scaffold
+│   ├── inference/
+│   │   └── baseline_inference.py  # Baseline inference scaffold
+│   ├── logging/
+│   │   └── logger.py              # Logging scaffold
+│   └── ui/
+│       └── index.html             # Minimal UI scaffold
+│
+├── project_docs/
+│   ├── 01_Project_Charter.md
+│   ├── 02_Scope_Statement.md
+│   ├── 03_Requirements.md
+│   ├── 04_Risk_Register.md
+│   ├── 05_Decision_Log.md
+│   ├── 06_Architecture_Outline.md
+│   ├── 07_Dataset_Plan.md
+│   └── 08_Roadmap.md              # Full development roadmap
+│
+├── README.md
+└── .gitignore
+
+
+## 9. Roadmap
 This roadmap reflects the project’s evolution from concept → MVP → scalable product.
 
 ### Completed
@@ -134,6 +162,6 @@ This roadmap reflects the project’s evolution from concept → MVP → scalabl
 
 For the full development roadmap, see [project_docs/08_Roadmap.md](project_docs/08_Roadmap.md).
 
-9. Status
+10. Status
 This is an early‑stage MVP.
 A cleaned‑up version will be published next week.
