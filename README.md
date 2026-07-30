@@ -127,6 +127,8 @@ In Progress
 
 ☐ Logging & Monitoring
 
+☐ README Formatting & Presentation Cleanup (spacing, hierarchy, diagrams)
+
 Future
 ☐ Custom Model Training (multi‑brand, multi‑model)
 
