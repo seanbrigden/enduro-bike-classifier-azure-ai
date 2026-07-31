@@ -1,9 +1,12 @@
 # app.py
-# Placeholder API for serving model inference
+# FastAPI endpoint serving real model inference
 
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from src.inference.baseline_inference import run_inference
 from src.logging.logger import log_event
+from fastapi.middleware.cors import CORSMiddleware
+from PIL import Image
+import io
 
 # Retailer lookup table
 RETAILER_LINKS = {
@@ -11,7 +14,6 @@ RETAILER_LINKS = {
 }
 
 app = FastAPI()
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,29 +25,31 @@ app.add_middleware(
 
 @app.get("/health")
 def health_check():
-    """
-    Simple health check endpoint.
-    Confirms the API is running.
-    """
+    """Simple health check endpoint."""
     return {"status": "ok"}
 
 @app.post("/predict")
-def predict():
+async def predict(file: UploadFile = File(...)):
     """
-    Placeholder prediction endpoint.
-    Will call the inference pipeline once implemented.
+    Real prediction endpoint.
+    Receives an uploaded image, runs inference, returns prediction + confidence.
     """
 
-    # Temporary placeholder values
-    predicted_class = "test_prediction"
-    confidence = 0.99
+    # Read image bytes
+    contents = await file.read()
+    image = Image.open(io.BytesIO(contents))
+
+    # Run your real inference pipeline
+    predicted_class, confidence = run_inference(image)
 
     # Retailer lookup (only returns a URL for Nomad)
     retailer_url = RETAILER_LINKS.get(predicted_class)
+
+    # Log the event
+    log_event(f"Prediction: {predicted_class}, Confidence: {confidence}")
 
     return {
         "prediction": predicted_class,
         "confidence": confidence,
         "retailer_url": retailer_url
     }
-
