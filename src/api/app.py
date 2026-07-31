@@ -10,7 +10,7 @@ import io
 
 # Retailer lookup table
 RETAILER_LINKS = {
-    "Santa Cruz Nomad": "https://www.backcountry.com/santa-cruz-nomad"
+    "Santa Cruz Nomad": "https://www.backcountry.com/search?s=u&q=santa+cruz+nomad"
 }
 
 app = FastAPI()
