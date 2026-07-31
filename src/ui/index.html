@@ -11,6 +11,22 @@
             margin: 40px;
         }
 
+        #preview {
+            max-width: 300px;
+            margin-top: 20px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        #result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            width: 400px;
+            white-space: pre-wrap;
+        }
+
         .retailer-banner {
             display: inline-block;
             margin-top: 20px;
@@ -24,15 +40,6 @@
 
         .retailer-banner:hover {
             background-color: #1f4fb3;
-        }
-
-        #result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 6px;
-            width: 400px;
-            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -48,12 +55,31 @@
         <button type="button" id="predict-btn">Predict</button>
     </form>
 
+    <!-- Image Preview -->
+    <img id="preview" src="" alt="Image preview">
+
     <h3>Result:</h3>
     <div id="result-box">No prediction yet.</div>
 
     <div id="retailer-container"></div>
 
     <script>
+        // Show preview when image is selected
+        document.getElementById("image").addEventListener("change", () => {
+            const fileInput = document.getElementById("image");
+            const preview = document.getElementById("preview");
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        });
+
+        // Predict button logic
         document.getElementById("predict-btn").addEventListener("click", async () => {
             const fileInput = document.getElementById("image");
             const resultBox = document.getElementById("result-box");
