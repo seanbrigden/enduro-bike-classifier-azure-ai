@@ -31,4 +31,9 @@ def predict():
     Placeholder prediction endpoint.
     Will call the inference pipeline once implemented.
     """
-    raise NotImplementedError("Prediction endpoint not implemented yet.")
+    return {
+        "prediction": "test_prediction",
+        "confidence": 0.99
+    }
+
+
