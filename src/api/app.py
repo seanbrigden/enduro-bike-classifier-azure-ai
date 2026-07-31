@@ -35,12 +35,11 @@ async def predict(file: UploadFile = File(...)):
     Receives an uploaded image, runs inference, returns prediction + confidence.
     """
 
-    # Read image bytes
+    # Read raw bytes
     contents = await file.read()
-    image = Image.open(io.BytesIO(contents))
 
-    # Run your real inference pipeline
-    predicted_class, confidence = run_inference(image)
+    # Run your real inference pipeline (expects bytes)
+    predicted_class, confidence = run_inference(contents)
 
     # Retailer lookup (only returns a URL for Nomad)
     retailer_url = RETAILER_LINKS.get(predicted_class)
