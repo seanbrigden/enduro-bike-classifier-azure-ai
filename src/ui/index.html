@@ -4,6 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Enduro Bike Classifier</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        .retailer-banner {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 18px;
+            background-color: #2d6cdf;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .retailer-banner:hover {
+            background-color: #1f4fb3;
+        }
+
+        #result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            width: 400px;
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 <body>
     <h1>Enduro Bike Classifier</h1>
@@ -18,12 +49,17 @@
     </form>
 
     <h3>Result:</h3>
-    <pre id="result">No prediction yet.</pre>
+    <div id="result-box">No prediction yet.</div>
+
+    <div id="retailer-container"></div>
 
     <script>
         document.getElementById("predict-btn").addEventListener("click", async () => {
             const fileInput = document.getElementById("image");
-            const resultBox = document.getElementById("result");
+            const resultBox = document.getElementById("result-box");
+            const retailerContainer = document.getElementById("retailer-container");
+
+            retailerContainer.innerHTML = ""; // Clear previous banner
 
             if (!fileInput.files.length) {
                 resultBox.textContent = "Please upload an image first.";
@@ -47,7 +83,21 @@
                 }
 
                 const data = await response.json();
-                resultBox.textContent = JSON.stringify(data, null, 2);
+
+                // Display prediction + confidence
+                resultBox.textContent =
+                    `Prediction: ${data.prediction}\n` +
+                    `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
+
+                // Show retailer banner only if URL exists
+                if (data.retailer_url) {
+                    const banner = document.createElement("a");
+                    banner.href = data.retailer_url;
+                    banner.target = "_blank";
+                    banner.className = "retailer-banner";
+                    banner.textContent = "View on Backcountry";
+                    retailerContainer.appendChild(banner);
+                }
 
             } catch (error) {
                 resultBox.textContent = "Error: " + error.message;
@@ -56,4 +106,3 @@
     </script>
 </body>
 </html>
-
