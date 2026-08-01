@@ -1,49 +1,112 @@
 # Risk Register
 
-## Risk 1: Insufficient Dataset Quality
-**Description:** Images may be inconsistent in lighting, angle, or resolution.  
-**Impact:** Model accuracy may be low.  
-**Likelihood:** Medium  
-**Mitigation:** Curate dataset manually; add more diverse images; document edge cases.
+Risks identified during development, with mitigations and residual exposure.
+Risks are reviewed when project status changes materially.
 
-## Risk 2: Limited Time (AI-900 Focus)
-**Description:** Only 30 minutes per day available until exam is complete.  
-**Impact:** Project velocity may be slower than expected.  
-**Likelihood:** High  
-**Mitigation:** Keep tasks small; focus on PM artifacts; defer coding until post-exam.
+---
 
-## Risk 3: Azure Service Complexity
-**Description:** Azure AI services may require configuration or learning curve.  
-**Impact:** Delays in deployment or training pipeline.  
-**Likelihood:** Medium  
-**Mitigation:** Start with Azure Vision baseline; document setup; keep architecture simple.
+## Risk 1: Dataset Quality and Consistency
+**Description:** Training images vary in lighting, angle, resolution, and
+background. Marketplace photography is typically lower quality than curated
+product photography.
+**Impact:** Reduced model accuracy, particularly on real-world images.
+**Likelihood:** Medium
+**Mitigation:** Manually curated dataset; documented image guidelines
+(`docs/image-guidelines.md`); edge cases recorded rather than discarded.
+**Residual Risk:** Medium — see Risk 4.
 
-## Risk 4: Model Underperformance
-**Description:** Baseline model may not classify enduro bikes accurately.  
-**Impact:** MVP may feel weak or incomplete.  
-**Likelihood:** Medium  
-**Mitigation:** Start with simple baseline; plan for stretch goal improvements.
+## Risk 2: Constrained Development Capacity
+**Description:** Single-contributor project delivered in short increments.
+**Impact:** Slower velocity; risk of partially finished components.
+**Likelihood:** High
+**Mitigation:** Tightly scoped MVP; work broken into independently completable
+units; scope statement used as a guardrail.
+**Residual Risk:** Low.
 
-## Risk 5: Scope Creep (Solo Project)
-**Description:** Easy to add features or expand categories.  
-**Impact:** Project may become overwhelming.  
-**Likelihood:** High  
-**Mitigation:** Stick to MVP; use scope statement as guardrails; log decisions.
+## Risk 3: Azure Service Configuration Complexity
+**Description:** Azure AI services require account setup, domain selection, and
+export configuration that can be misapplied without obvious symptoms.
+**Impact:** Delays; incorrect model configuration reaching downstream code.
+**Likelihood:** Medium
+**Mitigation:** Start from the simplest viable configuration; document setup
+steps as repeatable SOPs; validate after every configuration change.
+**Residual Risk:** Low.
 
-## Risk 6: Deployment Challenges
-**Description:** API or UI deployment may require troubleshooting.  
-**Impact:** End-to-end demo may be delayed.  
-**Likelihood:** Medium  
-**Mitigation:** Use Azure App Service or static web app; keep UI minimal.
+## Risk 4: Model Underperformance on Unseen Images
+**Description:** The model may not generalise beyond its training distribution —
+different lighting, cluttered backgrounds, partial frames, or non-drive-side
+photography.
+**Impact:** MVP appears unreliable in realistic conditions.
+**Likelihood:** Medium
+**Mitigation:** Held-out golden image set for validation before any demonstration
+(`docs/sop-golden-images.md`); per-class metrics reviewed rather than overall
+accuracy alone.
+**Residual Risk:** Medium — the model has not yet been evaluated at scale against
+real marketplace imagery.
 
-## Risk 7: Dataset Licensing or Source Issues
-**Description:** Some images may not be usable for training.  
-**Impact:** Dataset may need to be rebuilt.  
-**Likelihood:** Low  
-**Mitigation:** Use public domain or self-collected images; document sources.
+## Risk 5: Scope Creep
+**Description:** Adding categories, features, or infrastructure beyond MVP scope.
+**Impact:** MVP never reaches a demonstrable state.
+**Likelihood:** High
+**Mitigation:** Scope statement defines exclusions explicitly; expansion ideas
+recorded in the roadmap as future phases rather than acted on.
+**Residual Risk:** Low.
 
-## Risk 8: Motivation Drift
-**Description:** Life, work, or energy fluctuations may slow progress.  
-**Impact:** Project momentum may drop.  
-**Likelihood:** Medium  
-**Mitigation:** 30-minute cadence; PM-first approach; keep tasks small and winnable.
+## Risk 6: Deployment Complexity
+**Description:** Hosting the API and UI introduces environment, networking, and
+configuration work not required for local operation.
+**Impact:** End-to-end demonstration delayed or unreliable.
+**Likelihood:** Medium
+**Mitigation:** MVP runs locally with no external dependencies; deployment
+deferred to a later phase as an explicit decision (see Decision 007).
+**Residual Risk:** Low for MVP; unaddressed for production.
+
+## Risk 7: Dataset Licensing and Sourcing
+**Description:** Images sourced from the web may carry usage restrictions.
+**Impact:** Dataset may require rebuilding.
+**Likelihood:** Low
+**Mitigation:** Prefer self-collected and public-domain images; document sources
+in the dataset plan.
+**Residual Risk:** Low.
+
+## Risk 8: Out-of-Distribution Inputs (Confident Misclassification)
+**Description:** The two-class model assigns every input to one of its two known
+frames. Images of other bikes, or of non-bikes entirely, are still classified —
+often with high confidence.
+**Impact:** High. A confidently wrong answer erodes trust in the system more than
+an obvious failure does, because downstream processes and users treat a
+high-confidence result as reliable. Verified during testing: a blank image
+returned 80.7% confidence for one class.
+**Likelihood:** High — in any realistic deployment, most uploads would be
+neither frame.
+**Mitigation:** Confidence threshold returns an explicit low-confidence response
+instead of a label, and suppresses the retailer link. Planned: add a third
+"other" class trained on negative examples
+(`docs/sop-add-negative-class.md`).
+**Residual Risk:** Medium. The threshold limits exposure but cannot eliminate it;
+a misclassification above the threshold still surfaces as a confident answer.
+
+## Risk 9: Generated Code Reporting False Completion
+**Description:** AI-assisted development produced code and status entries
+describing work as complete when the underlying code did not execute. Issues
+found in review included a hardcoded input resolution that did not match the
+exported model, a mismatched contract between the API and inference layers, and
+a retailer lookup keyed to a label string absent from `labels.txt`.
+**Impact:** High. Failures were silent or runtime-only, and project status
+reflected generated summaries rather than tested behaviour.
+**Likelihood:** High for AI-assisted work without an explicit verification step.
+**Mitigation:** No item is marked complete until executed end to end against a
+real input (see Decision 010). Golden-image validation before any demonstration.
+**Residual Risk:** Low, once verification is applied consistently.
+
+## Risk 10: Model Export Configuration Drift
+**Description:** The exported model's expected input dimensions and preprocessing
+are determined by its Custom Vision domain and can change on re-export.
+Hardcoded preprocessing values break silently when the model changes.
+**Impact:** Medium. Inference fails outright, or returns degraded results that
+still appear plausible.
+**Likelihood:** Medium — applies to every retrain-and-export cycle.
+**Mitigation:** Inference reads input dimensions from the model at load time and
+preprocessing settings from `metadata_properties.json` rather than hardcoding
+them. Validation re-run after every export.
+**Residual Risk:** Low.

@@ -1,75 +1,121 @@
 # baseline_inference.py
-# Baseline inference pipeline for local MVP testing
+# Local ONNX inference for the Custom Vision compact export.
 
-import onnxruntime as ort
-import numpy as np
-from PIL import Image
+import io
+import json
 import os
+from pathlib import Path
 
-# Paths relative to repo root
-MODEL_PATH = os.path.join("src", "model", "enduro_classifier", "model.onnx")
-LABELS_PATH = os.path.join("src", "model", "enduro_classifier", "labels.txt")
+import numpy as np
+import onnxruntime as ort
+from PIL import Image
+
+# Absolute paths, so this works no matter which directory you run from.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+MODEL_DIR = REPO_ROOT / "src" / "model" / "enduro_classifier"
+MODEL_PATH = MODEL_DIR / "model.onnx"
+LABELS_PATH = MODEL_DIR / "labels.txt"
+METADATA_PATH = MODEL_DIR / "metadata_properties.json"
+
+# Raw label (from labels.txt) -> name shown to a human.
+DISPLAY_NAMES = {
+    "santa_cruz_nomad": "Santa Cruz Nomad V6",
+    "specialized_enduro": "Specialized Enduro",
+}
+
+# Below this, we say we don't know rather than guessing between two classes.
+CONFIDENCE_THRESHOLD = 0.70
 
 
 class EnduroClassifier:
     def __init__(self):
-        # Load labels
-        with open(LABELS_PATH, "r") as f:
-            self.labels = [line.strip() for line in f.readlines()]
+        with open(LABELS_PATH) as f:
+            self.labels = [line.strip() for line in f if line.strip()]
 
-        # Load ONNX model
         self.session = ort.InferenceSession(
-            MODEL_PATH,
-            providers=["CPUExecutionProvider"]
+            str(MODEL_PATH), providers=["CPUExecutionProvider"]
         )
 
-        # Get model input name
-        self.input_name = self.session.get_inputs()[0].name
+        model_input = self.session.get_inputs()[0]
+        self.input_name = model_input.name
 
-    def preprocess(self, image_path):
-        img = Image.open(image_path).convert("RGB")
+        # Read the target size off the model itself rather than hard-coding it.
+        # This export is [1, 3, 300, 300]; reading it means a re-export at a
+        # different resolution won't silently break inference.
+        _, _, height, width = model_input.shape
+        self.target_size = (int(width), int(height))
 
-        # Azure Custom Vision ONNX models expect 224x224
-        img = img.resize((224, 224))
+        if METADATA_PATH.exists():
+            with open(METADATA_PATH) as f:
+                self.metadata = json.load(f)
+        else:
+            self.metadata = {}
 
-        img = np.array(img).astype(np.float32)
+    @staticmethod
+    def _to_pil(image):
+        """Accept raw bytes, a file-like object, a path, or a PIL Image."""
+        if isinstance(image, Image.Image):
+            return image.convert("RGB")
+        if isinstance(image, (bytes, bytearray)):
+            return Image.open(io.BytesIO(image)).convert("RGB")
+        if hasattr(image, "read"):
+            return Image.open(image).convert("RGB")
+        if isinstance(image, (str, os.PathLike, Path)):
+            return Image.open(image).convert("RGB")
+        raise TypeError(f"Unsupported image input: {type(image)!r}")
 
-        # Normalize to 0–1
-        img = img / 255.0
+    def preprocess(self, image):
+        img = self._to_pil(image)
 
-        # Convert HWC → CHW
-        img = np.transpose(img, (2, 0, 1))
+        # metadata_properties.json specifies ResizeMethod=Stretch, so a plain
+        # resize to the model's target size is correct here.
+        img = img.resize(self.target_size)
 
-        # Add batch dimension
-        img = np.expand_dims(img, axis=0)
+        arr = np.array(img).astype(np.float32) / 255.0  # NominalPixelRange: 0-1
+        arr = np.transpose(arr, (2, 0, 1))  # HWC -> CHW
+        return np.expand_dims(arr, axis=0)  # add batch dim
 
-        return img
+    def predict(self, image):
+        tensor = self.preprocess(image)
+        raw = self.session.run(None, {self.input_name: tensor})[0][0]
 
-    def predict(self, image_path):
-        img = self.preprocess(image_path)
+        # This export already applies softmax inside the graph, so its output
+        # sums to 1. Applying softmax a second time would flatten a 99%
+        # prediction down to ~73%. Only normalize if the output is not
+        # already a probability distribution.
+        if abs(float(raw.sum()) - 1.0) > 1e-3:
+            shifted = np.exp(raw - np.max(raw))
+            probs = shifted / shifted.sum()
+        else:
+            probs = raw
 
-        outputs = self.session.run(None, {self.input_name: img})
-        logits = outputs[0][0]
-
-        # Softmax
-        exp = np.exp(logits - np.max(logits))
-        probs = exp / exp.sum()
-
-        # Highest probability class
-        idx = np.argmax(probs)
+        idx = int(np.argmax(probs))
         label = self.labels[idx]
         confidence = float(probs[idx])
 
         return {
             "label": label,
+            "display_name": DISPLAY_NAMES.get(label, label),
             "confidence": confidence,
+            "is_confident": confidence >= CONFIDENCE_THRESHOLD,
             "probabilities": {
-                self.labels[i]: float(probs[i])
-                for i in range(len(self.labels))
-            }
+                self.labels[i]: float(probs[i]) for i in range(len(self.labels))
+            },
         }
 
 
-def run_inference(image_path):
-    classifier = EnduroClassifier()
-    return classifier.predict(image_path)
+# Load the model once per process, not once per request. Creating an
+# InferenceSession reads 44MB off disk and takes seconds.
+_classifier = None
+
+
+def get_classifier() -> EnduroClassifier:
+    global _classifier
+    if _classifier is None:
+        _classifier = EnduroClassifier()
+    return _classifier
+
+
+def run_inference(image):
+    """Returns a dict. Accepts bytes, a file-like object, or a path."""
+    return get_classifier().predict(image)
