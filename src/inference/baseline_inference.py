@@ -21,9 +21,10 @@ METADATA_PATH = MODEL_DIR / "metadata_properties.json"
 DISPLAY_NAMES = {
     "santa_cruz_nomad": "Santa Cruz Nomad V6",
     "specialized_enduro": "Specialized Enduro",
+    "other": "Not a Nomad or an Enduro",
 }
 
-# Below this, we say we don't know rather than guessing between two classes.
+# Below this, we return "not confident" even if a class wins outright.
 CONFIDENCE_THRESHOLD = 0.70
 
 

@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Custom Vision export manifest — the *.manifest rule above (PyInstaller) catches this
+!src/model/enduro_classifier/cvexport.manifest
