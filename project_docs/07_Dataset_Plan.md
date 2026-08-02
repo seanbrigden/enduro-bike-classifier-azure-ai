@@ -1,5 +1,7 @@
 # Dataset Plan
 
+Superseded by project_docs/07_Dataset_Plan.md
+
 **Authoritative dataset document for this project.** Describes the dataset as
 built, and the planned expansion. Supersedes `docs/dataset-plan.md`.
 `docs/dataset-spec.md` describes a candidate future scope that is not

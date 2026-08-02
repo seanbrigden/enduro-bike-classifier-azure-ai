@@ -1,5 +1,7 @@
 # Enduro Bike Classifier — Dataset Specification (MVP)
 
+Candidate future scope, not implemented
+
 ## 1. Purpose
 Define a clean, consistent dataset for training a 5‑class enduro bike classifier using Azure Vision Custom Models. This specification ensures consistent geometry, silhouette clarity, and high-quality training data.
 
