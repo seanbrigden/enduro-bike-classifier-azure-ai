@@ -33,11 +33,12 @@ recognition, or reliable fraud detection.
 ![Demo screenshot](docs/images/demo.png)
 
 *Left: a Specialized Enduro identified correctly at 70.7% confidence. Right: a
-Trek Slash — neither of the two frames the model knows — identified as a Santa
-Cruz Nomad V6 at 87.3%, with the retail link firing for a bike the user is not
-looking at. Confidence is not correctness, and a closed-set classifier has no
-way to say "neither." This is the failure mode the project set out to
-characterise.*
+Trek Slash — neither of the two frames the model was trained to recognise —
+identified as a Santa Cruz Nomad V6 at 87.3%, with the retail link firing for a
+bike the user is not looking at. The model does have an `other` class, but its
+negative examples were not representative enough to separate the target frames
+from visually similar bikes. Confidence measures certainty among learned
+categories, not whether the training data covered the input.*
 
 ---
 

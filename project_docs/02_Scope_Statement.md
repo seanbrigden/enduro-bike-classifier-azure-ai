@@ -1,41 +1,64 @@
 # Scope Statement
 
 ## In Scope (MVP)
-- Collect a dataset of enduro mountain bike images
-- Clean and organize the dataset
-- Train a baseline classifier using Azure AI services
-- Deploy a simple API endpoint for predictions
-- Create a minimal UI for uploading an image and receiving a classification
-- Document architecture, decisions, and risks
 
-## In Scope (Stretch Goals)
-- Improve model accuracy with custom training
-- Add additional bike categories (trail, downhill, XC)
-- Build a nicer frontend experience
-- Add logging, monitoring, and basic analytics
-- Explore model explainability (feature importance, saliency maps)
+- Collect and curate a labelled dataset of two enduro frames, plus a negative
+  class
+- Train and evaluate a classifier using Azure Custom Vision
+- Export the trained model for local inference
+- Expose a prediction API accepting an image upload
+- Provide a minimal UI for upload and result display
+- Surface a retail link on a confirmed match
+- Validate against held-out images and publish the results
+- Document architecture, decisions, risks, and dataset
 
-## Out of Scope (For Now)
-- Full production‑grade infrastructure
-- Mobile app development
-- Real‑time video classification
-- Large‑scale dataset scraping automation
-- Multi‑model ensemble systems
+## In Scope (Stretch)
+
+- Expand the negative class with hard examples and retrain
+- Additional bike categories (trail, downhill, XC)
+- Improved frontend experience
+- Structured logging and basic analytics
+- Model explainability (saliency maps) to identify which frame features drive
+  predictions
+
+## Out of Scope
+
+- Production deployment and infrastructure (deferred by Decision 007)
+- Authentication, rate limiting, monitoring
+- Mobile application development
+- Real-time video classification
+- Automated large-scale dataset scraping
+- Multi-model ensemble systems
 
 ## Assumptions
-- 30 minutes per day until AI‑900 is complete
-- Solo developer workflow
-- Azure will be the primary cloud platform
-- GitHub will be the source of truth for documentation and code
+
+- Azure is the primary platform for model training
+- GitHub is the source of truth for code and documentation
+- Training data is sourced from publicly available product imagery
 
 ## Constraints
-- Limited time (AI‑900 focus)
-- Limited dataset availability
-- No GPU training locally
-- Lightweight architecture until post‑exam
+
+- Single contributor working in short increments
+- Limited dataset availability for specific frame generations
+- No local GPU; training performed in the Custom Vision portal
+- Lightweight architecture with no production infrastructure
 
 ## Definition of Done (MVP)
-- A working classifier that can identify enduro bikes
-- A simple UI that accepts an image and returns a prediction
-- Clean repo structure with PM artifacts
-- Azure deployment functioning end‑to‑end
+
+- Local ONNX inference, API, and UI functioning end to end against real images
+- Predictions returned with confidence scores and an explicit low-confidence
+  response
+- Retail link surfacing correctly on a confirmed match
+- Held-out validation completed and results published, whatever they show
+- PM artifacts consistent with the implemented system
+- Clean repository structure
+
+Deployment is explicitly excluded from the definition of done. Hosting the
+pipeline does not change what the MVP demonstrates, and a live demonstration
+dependent on a network round trip is less reliable than one that is not
+(Decision 007).
+
+## Status
+
+Met. See `docs/validation-results.md` for what validation found, and the README
+for known limitations.
