@@ -71,8 +71,14 @@ class EnduroClassifier:
         # metadata_properties.json specifies ResizeMethod=Stretch, so a plain
         # resize to the model's target size is correct here.
         img = img.resize(self.target_size)
-
-        arr = np.array(img).astype(np.float32) / 255.0  # NominalPixelRange: 0-1
+  
+        # NOTE: metadata reports Image.NominalPixelRange = Normalized_0_1, but the
+        # exported ONNX graph applies its own scaling internally. Feeding it
+        # pre-divided 0-1 values collapses the activations and the model returns
+        # near-identical probabilities for every image. Raw 0-255 floats are correct.
+        # NormalizeMean is [0,0,0] and NormalizeStd is [1,1,1], so no further
+        # normalization is applied.
+        arr = np.array(img).astype(np.float32)
         arr = np.transpose(arr, (2, 0, 1))  # HWC -> CHW
         return np.expand_dims(arr, axis=0)  # add batch dim
 
