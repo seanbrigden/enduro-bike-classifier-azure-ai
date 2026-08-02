@@ -29,15 +29,15 @@ recognition, or reliable fraud detection.
 
 ## Demo
 
-<!-- Add screenshot here: docs/images/demo.png
-     Suggested: side-by-side of a correct Enduro prediction and the
-     low-confidence response, captioned with the business lesson. -->
 
 ![Demo screenshot](docs/images/demo.png)
 
-*Upload an image, get a label with a confidence score. A confirmed Nomad match
-surfaces a retail link; anything below the confidence threshold returns an
-explicit "not confident" response instead of a name.*
+*Left: a Specialized Enduro identified correctly at 70.7% confidence. Right: a
+Trek Slash — neither of the two frames the model knows — identified as a Santa
+Cruz Nomad V6 at 87.3%, with the retail link firing for a bike the user is not
+looking at. Confidence is not correctness, and a closed-set classifier has no
+way to say "neither." This is the failure mode the project set out to
+characterise.*
 
 ---
 
