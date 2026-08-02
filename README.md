@@ -1,17 +1,43 @@
 # Enduro Bike Classifier (Azure AI)
 
-An applied Azure AI project: an image classifier that identifies two visually
-similar enduro mountain bike frames and links a confirmed match to a retail
-product page.
+A deliberately constrained computer-vision MVP exploring whether product imagery
+could improve marketplace listing accuracy. It classifies two visually similar
+enduro mountain bike frames using an Azure Custom Vision model exported to ONNX,
+and links a confirmed match to a retail product page.
 
-Built to put AI-900 fundamentals into practice end to end — dataset design,
-model training and evaluation, exported local inference, an API, a working
-interface, and the product documentation around it.
+The more useful result was not the classifier. It was discovering how
+confidently a closed-set model misidentifies unfamiliar input — and how far the
+platform's own accuracy metric diverged from performance on images it had never
+seen.
 
-**Status:** MVP complete and running locally. Validated against held-out images
-with mixed results — two of five clean passes. See
-[`docs/validation-results.md`](docs/validation-results.md). Known limitations
-are documented below and scoped for a future iteration.
+Built to put AI-900 fundamentals into practice end to end: dataset design, model
+training and evaluation, exported local inference, an API, a working interface,
+and the product documentation around it.
+
+**Status:** working local prototype. Complete and running; validated against
+held-out images with mixed results — two of five clean passes. Last verified
+2026-08-01.
+
+**What it demonstrates:** commercial framing of an ML problem, model evaluation,
+failure-mode discovery, and verification discipline around AI-assisted
+development.
+
+**What it does not demonstrate:** production readiness, open-world bike
+recognition, or reliable fraud detection.
+
+---
+
+## Demo
+
+<!-- Add screenshot here: docs/images/demo.png
+     Suggested: side-by-side of a correct Enduro prediction and the
+     low-confidence response, captioned with the business lesson. -->
+
+![Demo screenshot](docs/images/demo.png)
+
+*Upload an image, get a label with a confidence score. A confirmed Nomad match
+surfaces a retail link; anything below the confidence threshold returns an
+explicit "not confident" response instead of a name.*
 
 ---
 
@@ -24,11 +50,15 @@ across the board:
 - **Buyers** get unreliable search results and reduced trust
 - **Sellers** get incorrect categorisation and lower visibility
 - **Support teams** verify listings by hand
-- **Fraud teams** struggle to identify mislabelled or counterfeit inventory
 
-Automated frame identification addresses the root cause: it makes
+Automated frame identification would address the root cause: it makes
 categorisation a system property rather than something dependent on the seller
 getting it right.
+
+Adjacent applications — counterfeit detection, fraud heuristics,
+marketplace-wide automation — are plausible extensions of the same capability.
+They are hypotheses here, not demonstrated results; a two-class classifier does
+not evidence them.
 
 The commerce connection is the point of the demo. A confirmed match surfaces a
 direct retail link. Identification alone is a classification exercise;
@@ -41,6 +71,17 @@ identification tied to a purchase path is a merchandising capability.
 - Local ONNX inference, a FastAPI service, and a working browser interface
 - Product documentation: charter, scope, requirements, risk register, decision log, SOPs
 - Explicit handling of model uncertainty, and honest reporting of what the system cannot do
+
+**On AI-assisted development.** Much of the initial code was generated with an
+AI assistant. It produced plausible code and plausible completion reports, and a
+review found neither was reliable: inference used a hardcoded input resolution
+that did not match the exported model, the API and inference layers passed
+incompatible types, and the retailer lookup referenced a label that does not
+exist. A later defect made the model return near-identical output for every
+image — invisible to every metric the training platform reported, and found
+within minutes of testing five real images. The delivery rule changed as a
+result: nothing is complete until it runs end to end against a real input
+(Decision 010).
 
 **Deliberately out of scope:** deployment, authentication, monitoring, and
 multi-brand coverage. This is an MVP built to prove a pipeline, not a production
@@ -111,8 +152,20 @@ These figures are computed by cross-validation over the training images, and the
 evaluation subset is small enough that each value carries a wide margin of
 error.
 
-**Measured against held-out images:** two of five clean passes. The reported
-metrics substantially overstate real-world performance. Full results and
+**Measured against five held-out images the model had never seen:**
+
+| Test input | Predicted | Confidence | What it showed |
+|---|---|---|---|
+| Santa Cruz Nomad V6 | Nomad | 0.694 | Correct, but below the display threshold |
+| Specialized Enduro | Enduro | 0.707 | Expected in-distribution behaviour |
+| Non-bike image | Other | 0.937 | Negative class works for obvious cases |
+| Road bike | **Nomad** | 0.765 | Closed-set limitation |
+| Trek Slash | **Nomad** | 0.873 | Confidence is not correctness |
+
+Two clean passes out of five. The reported metrics substantially overstate
+real-world performance, because they are computed on images from the training
+collection. Both failures were reproduced independently in the Custom Vision
+portal, confirming they originate in the model rather than in local code. Full
 analysis in [`docs/validation-results.md`](docs/validation-results.md).
 
 ## 7. Known limitations

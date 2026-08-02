@@ -1,145 +1,111 @@
 # Roadmap
 
-This roadmap outlines the development path for the Enduro Bike Classifier project, moving from the current scaffolding to a functional MVP and beyond. It is structured around clear phases, dependencies, and deliverables.
+Development path from scaffolding through MVP to a production-capable system.
+Phase status reflects what has been executed and verified, not what has been
+written (Decision 010).
 
 ---
 
-## Phase 0 — Completed (Sprint Scaffolding)
+## Phase 0 — Project Foundation ✅ Complete
 
-- Project structure established  
-- Inference scaffold created  
-- API scaffold created  
-- UI scaffold created  
-- Logging scaffold created  
-- Architecture outline completed  
-- Architecture diagram added  
-- Commit hygiene and verification completed  
-
-This phase provides the foundation for all future development.
+- Project charter, scope statement, requirements
+- Risk register, decision log, architecture outline, dataset plan
+- Repository structure and commit hygiene
 
 ---
 
-## Phase 1 — MVP Completion (Immediate Next Steps)
+## Phase 1 — MVP ✅ Complete
 
-Minimal viable product: baseline model + working API + working UI.
+**Model**
+- Dataset collected and tagged in Azure Custom Vision
+- Two-class model trained and evaluated
+- Third `other` class added after out-of-distribution testing (Decision 008)
+- Compact model exported to ONNX and committed (Decision 009)
 
-### Baseline Model Integration
-- Connect Azure Vision API to inference scaffold  
-- Add real inference logic  
-- Return prediction + confidence score  
-- Add basic error handling  
+**Inference**
+- Local ONNX inference via `onnxruntime`
+- Input dimensions and preprocessing read from the model and its metadata
+- Confidence threshold with explicit low-confidence response
+- Model loaded once per process
 
-### API Wiring
-- Connect `/predict` to real inference  
-- Add request validation (image type, size)  
-- Add structured JSON response  
+**API**
+- `/predict` accepts image upload, returns label, confidence, per-class
+  probabilities, and conditional retailer URL
+- Content type and upload size validation
+- UI served from the same origin
+- `/health` endpoint
 
-### UI Wiring
-- Add JavaScript to send image → API  
-- Display prediction + confidence  
-- Add simple loading state  
+**UI**
+- File upload with image preview
+- Prediction and confidence display
+- Conditional retailer link on a confirmed Nomad match
 
-### Logging
-- Add real log_event calls  
-- Log: request received, inference start, inference end, errors  
-- Store logs locally (MVP)  
+**Validation**
+- Held-out image set established in `data/golden/`
+- End-to-end test run and results published (`docs/validation-results.md`)
 
-**Deliverable:** A working classifier that accepts an image and returns a prediction.
-
----
-
-## Phase 2 — Model Improvement
-
-Move beyond the baseline model.
-
-### Dataset Prep
-- Organize labeled images  
-- Add dataset plan details  
-- Upload to Azure Storage  
-
-### Custom Model Training
-- Train custom Azure Vision model  
-- Evaluate accuracy  
-- Document results  
-
-### Inference Upgrade
-- Replace baseline model with custom model  
-- Add preprocessing if needed  
-- Add confidence thresholding  
-
-**Deliverable:** A more accurate classifier.
+**Deliverable:** a working classifier that accepts an image and returns a
+prediction, with documented performance against images it has never seen.
 
 ---
 
-## Phase 3 — Production Hardening
+## Phase 2 — Model Improvement ⬜ Next
 
-Make the system stable, observable, and ready for deployment.
+Validation showed the model reliably separates bikes from non-bikes but not
+target frames from other full-suspension bikes. This phase addresses that.
 
-### Logging & Monitoring
-- Add structured logging  
-- Add correlation IDs  
-- Integrate Azure Monitor  
-- Add basic dashboards  
+- Expand `other` from 53 to ~120–150 images, weighted toward full-suspension
+  trail and enduro bikes, prioritising other Santa Cruz models
+- Add Nomad and Enduro images across varied angles and conditions
+- Retrain, re-export, re-validate against the same held-out set
+- Publish before/after comparison
+- Evaluate whether the confidence threshold remains useful once the negative
+  class is stronger
 
-### Error Handling
-- Add graceful API errors  
-- Add UI error messages  
-- Add retry logic for inference  
+**Deliverable:** a classifier that rejects visually similar bikes rather than
+confidently misidentifying them.
 
-### Security
-- Validate file types  
-- Limit upload size  
-- Add basic rate limiting  
-
-**Deliverable:** A stable, observable MVP.
+**Reference:** `docs/sop-add-negative-class.md`
 
 ---
 
-## Phase 4 — Deployment
+## Phase 3 — Real-World Robustness ⬜
 
-Get the system live.
-
-### Deployment Target
-Choose one:
-- Azure App Service (API)  
-- Azure Static Web Apps (UI)  
-
-### CI/CD
-- GitHub Actions → Azure  
-- Auto-deploy on main branch  
-
-### Environment Setup
-- Prod + Dev environments  
-- Environment variables for keys  
-
-**Deliverable:** A deployed, functioning classifier.
+- Test against cluttered backgrounds, poor lighting, partial frames,
+  non-drive-side photography, and bikes in motion
+- Expand the held-out set to 20–30 images with a CSV manifest of expected labels
+- Consider model explainability (saliency maps) to identify which frame features
+  drive predictions
 
 ---
 
-## Phase 5 — Future Enhancements
+## Phase 4 — Production Hardening ⬜
 
-Optional but high-value improvements.
-
-### Model
-- Add more bike categories  
-- Add explainability (saliency maps)  
-- Add batch inference  
-
-### UI
-- Add drag-and-drop upload  
-- Add history view  
-- Add confidence visualization  
-
-### API
-- Add versioning  
-- Add async inference  
-- Add caching  
-
-### Ops
-- Add automated dataset ingestion  
-- Add labeling tools  
-- Add retraining pipeline  
+- Structured logging with correlation IDs
+- Graceful API and UI error handling
+- Rate limiting and authentication
+- Azure Monitor integration and basic dashboards
 
 ---
 
+## Phase 5 — Deployment ⬜
 
+- Azure App Service (API) and/or Static Web Apps (UI)
+- GitHub Actions CI/CD
+- Dev and production environments
+- Model versioning — the current approach commits the ONNX file directly, which
+  does not scale past a handful of iterations
+
+---
+
+## Phase 6 — Scale ⬜
+
+- Multi-model, multi-brand coverage (`docs/dataset-spec.md` describes a
+  candidate scope)
+- Marketplace integration
+- Fraud-detection heuristics — currently a hypothesis, not a demonstrated
+  capability
+- Feedback loop: capture low-confidence and corrected predictions as training
+  data
+- Automated dataset ingestion and labelling tools
+- Batch and async inference

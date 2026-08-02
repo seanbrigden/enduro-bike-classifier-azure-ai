@@ -1,140 +1,111 @@
 # Dataset Plan
 
+**Authoritative dataset document for this project.** Describes the dataset as
+built, and the planned expansion. Supersedes `docs/dataset-plan.md`.
+`docs/dataset-spec.md` describes a candidate future scope that is not
+implemented.
+
+---
+
 ## 1. Purpose
-Define the data required to train, validate, and test a baseline mountain bike classifier using Azure Vision. This plan outlines sources, structure, labeling, quality standards, and risks. It supports the MVP and provides a foundation for future custom model training.
 
----
+Define the data used to train the classifier, the standards applied, and the
+gaps validation exposed.
 
-## 2. Dataset Scope
+## 2. Scope as Built
 
-### 2.1 MVP Scope
-The MVP will classify **bike brand only** (e.g., Specialized, Trek, Giant, Santa Cruz).
+Three classes, model-level rather than brand-level:
 
-- Target classes: 4–6 major brands
-- Image types: side-profile photos of enduro-style mountain bikes
-- Minimum images per class: 50–100
-- Total dataset size: ~300–600 images
+| Class | Definition | Images |
+|---|---|---|
+| `santa_cruz_nomad` | Santa Cruz Nomad V6 | 42 |
+| `specialized_enduro` | Specialized Enduro, 2022+ | 38 |
+| `other` | Neither of the above — other bikes and non-bikes | 53 |
+| | **Total** | **133** |
 
-### 2.2 Future Scope (Not in MVP)
-- Model-level classification (e.g., Specialized Enduro vs. Stumpjumper)
-- Year/model variant classification
-- Additional categories (trail, XC, downhill)
-- Real-world trail photos with occlusion, mud, riders, etc.
+Two visually similar frames were chosen deliberately over two dissimilar ones:
+a harder discrimination task is a more meaningful test of the pipeline
+(Decision 004).
 
----
+The `other` class was added after initial testing showed a two-class model
+assigns every input to a known class regardless of content (Decision 008).
 
-## 3. Data Sources
+## 3. Out of Scope
 
-### 3.1 Primary Sources (MVP)
-- Manufacturer websites (public product photos)
-- Bike review sites (e.g., Pinkbike, VitalMTB)
-- Retailer listings (e.g., JensonUSA, Chain Reaction Cycles)
-- User-uploaded images from forums (only if allowed)
+- Earlier generations (Nomad V5 and prior, Enduro pre-2022)
+- Other Santa Cruz VPP frames (Bronson, Megatower, Hightower, 5010)
+- Other brands as named classes
+- Frame material, suspension travel, or geometry metadata
+- Object detection or segmentation — classification only
 
-### 3.2 Secondary Sources (Future)
-- Scraped images with automated filtering
-- User-submitted images (if building a UI later)
-- Bike park cameras (hypothetical commercial extension)
+## 4. Sources
 
----
+- Manufacturer product photography (Santa Cruz, Specialized, and others for the
+  negative class)
+- Bike review sites and retailer listings
+- Press and product launch media
 
-## 4. Data Collection Approach
+Sourcing follows `docs/image-guidelines.md`. Publicly available product imagery
+only; no scraping of protected content.
 
-### 4.1 Manual Collection (MVP)
-- Manually download 50–100 images per brand
-- Ensure variety in:
-  - angles (but mostly side-profile)
-  - lighting
-  - backgrounds
-  - colorways
-  - wheel sizes
+## 5. Collection and Labelling
 
-### 4.2 Automated Collection (Future)
-- Web scraping with filtering
-- Automated deduplication
-- Automated EXIF stripping
+Images were collected manually and tagged in the Azure Custom Vision portal.
+Custom Vision handles the train/validation split internally, so no local
+train/val/test folder structure is maintained.
 
----
+`data/golden/` holds held-out validation images sourced independently of the
+training set. These are never uploaded to Custom Vision and are used only for
+local end-to-end testing (`docs/validation-results.md`).
 
-## 5. Dataset Structure
+## 6. Quality Standards
 
-### 5.1 Folder Layout (MVP)
-/dataset
-/raw
-/specialized
-/trek
-/giant
-/santacruz
-/processed
-/train
-/val
-/test
+- Full side profile preferred, drive side where available
+- Bike occupies a substantial portion of the frame
+- No rider obscuring the frame or linkage
+- Suspension linkage visible where possible — it carries most of the
+  distinguishing signal between similar frames
+- No extreme lens distortion
+- Duplicates and blurry images removed
 
-### 5.2 Train/Val/Test Split
-- Train: 70%
-- Validation: 15%
-- Test: 15%
+## 7. Validated Gaps
 
----
+Held-out testing exposed two dataset problems that the training metrics did not.
 
-## 6. Labeling Strategy
+**The negative class is under-resourced for its diversity.** 53 images cover
+"everything that is not one of two specific frames" — an enormous visual space.
+The result: the model separates bikes from non-bikes reliably (a non-bike scored
+0.937 for `other`) but not target frames from other full-suspension bikes (a
+Trek Slash scored 0.873 for `santa_cruz_nomad`).
 
-### 6.1 MVP Labeling
-- Folder-based labeling (Azure Vision supports this)
-- Each folder = one brand
-- No bounding boxes or segmentation required
+**Negatives lacked hard cases.** The negative set contained too few bikes
+visually close to the target frames. Without them, nothing in training required
+the model to learn linkage geometry or tube shaping — the features that actually
+separate a Nomad V6 from a Slash.
 
-### 6.2 Future Labeling
-- Model-level labels
-- Frame material
-- Suspension type
-- Geometry metadata (if available)
+## 8. Planned Expansion
 
----
+Expand `other` from 53 to approximately 120–150 images, weighted toward
+full-suspension trail and enduro bikes.
 
-## 7. Quality Standards
+Priority order:
 
-### 7.1 Image Requirements
-- Minimum resolution: 600px on shortest side
-- No watermarks if possible
-- No riders in frame (MVP)
-- Bike must be at least 60% of the image
+1. **Other Santa Cruz models** — Bronson, Megatower, Hightower, 5010, Nomad V5.
+   Highest value: same brand design language and linkage, so they force the
+   model to learn what distinguishes a V6 specifically.
+2. **Other brands' enduro bikes** — Trek Slash, Giant Reign, YT Capra, Canyon
+   Spectral, Norco Sight, Kona Process, Transition Sentinel.
+3. **Other bike categories** — road, gravel, hardtail, e-bike.
+4. **Non-bikes** — already adequately covered.
 
-### 7.2 Dataset Quality Checks
-- Remove duplicates
-- Remove blurry images
-- Ensure class balance (±20%)
+Additional Nomad and Enduro images across varied angles and conditions would
+also help, since both target classes are currently thin.
 
----
+Procedure: `docs/sop-add-negative-class.md`. The held-out test should be re-run
+against the same images after every retrain so results stay comparable.
 
-## 8. Risks & Mitigations
+## 9. Risks
 
-### **Risk 1: Class imbalance**
-- *Mitigation:* Oversample minority classes or collect more images.
-
-### **Risk 2: Low-quality or inconsistent images**
-- *Mitigation:* Manual review; enforce quality standards.
-
-### **Risk 3: Copyright concerns**
-- *Mitigation:* Use publicly available product images; avoid scraping protected content.
-
-### **Risk 4: Overfitting to studio photos**
-- *Mitigation:* Add real-world images in future iterations.
-
----
-
-## 9. Acceptance Criteria (MVP)
-
-- Dataset contains at least 50 images per brand
-- All images meet quality standards
-- Train/val/test split completed
-- Folder structure matches architecture outline
-- Dataset is ready for Azure Vision ingestion
-
----
-
-## 10. Next Steps
-
-- Begin manual image collection
-- Create dataset folder structure in repo (or local)
-- Prepare for Azure Vision baseline model training
+Dataset risks are tracked in `04_Risk_Register.md` — see Risk 1 (quality and
+consistency), Risk 7 (licensing), Risk 8 (out-of-distribution inputs), and
+Risk 11 (training metrics not representative of deployment performance).
