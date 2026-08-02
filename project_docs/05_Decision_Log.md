@@ -156,3 +156,41 @@ against a real input and the output inspected.
 plausible-looking status reports through the same process. Neither is evidence
 that something runs. Execution is the only reliable signal, and the cost of
 checking is far lower than the cost of discovering it during a demonstration.
+
+## Decision 011 — Ship MVP With Documented Failure Rather Than Extend Scope
+**Date:** 2026-08-01
+**Context:** Held-out validation found that visually similar bikes are
+misclassified as target frames with high confidence. The fix requires expanding
+the negative class by roughly 70–100 images and retraining, with uncertain
+outcome — the Nomad-versus-Slash distinction is fine-grained and may need
+several iterations.
+**Decision:** Close the MVP in its current state with validation results and
+limitations documented in full. Defer the fix to a subsequent iteration.
+**Alternatives Considered:**
+- Extend now and delay closeout (rejected: open-ended effort against a fixed
+  window, and the MVP's purpose — proving the pipeline — is already met)
+- Close out without publishing the validation results (rejected: the reported
+  89.3% would then stand unqualified, which the held-out test shows to be
+  misleading)
+**Rationale:** The MVP was scoped to demonstrate an end-to-end pipeline, and it
+does. The remaining gap is a dataset problem with a known procedure and an
+uncertain timeline, which is a poor fit for a fixed-scope milestone. Publishing
+the validation results makes the limitation legible rather than latent.
+**Revisit:** Next iteration, per `docs/sop-add-negative-class.md`.
+
+## Decision 012 — Validate Against Held-Out Images Before Any Status Claim
+**Date:** 2026-08-01
+**Context:** The model reported 89.3% precision and recall in Custom Vision. On
+five independently sourced images it produced two clean passes, one correct
+result below threshold, and two confident errors. Separately, local inference
+was found to return near-identical output for every input due to a preprocessing
+defect that no server-side metric could have surfaced.
+**Decision:** No accuracy claim is published, and no component is marked
+complete, without a held-out test run through the actual local pipeline.
+**Alternatives Considered:**
+- Rely on Custom Vision's reported metrics (rejected: they evaluate the model on
+  its own training distribution and never exercise local inference code)
+**Rationale:** Platform metrics measure the model in isolation under favourable
+conditions. They say nothing about the system around it or about inputs the
+model has not seen. Both failure modes found in this project were invisible to
+the reported figures and visible within minutes of running five real images.

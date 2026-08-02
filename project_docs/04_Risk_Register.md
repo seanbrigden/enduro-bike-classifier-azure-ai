@@ -70,21 +70,22 @@ in the dataset plan.
 **Residual Risk:** Low.
 
 ## Risk 8: Out-of-Distribution Inputs (Confident Misclassification)
-**Description:** The two-class model assigns every input to one of its two known
-frames. Images of other bikes, or of non-bikes entirely, are still classified —
-often with high confidence.
-**Impact:** High. A confidently wrong answer erodes trust in the system more than
-an obvious failure does, because downstream processes and users treat a
-high-confidence result as reliable. Verified during testing: a blank image
-returned 80.7% confidence for one class.
-**Likelihood:** High — in any realistic deployment, most uploads would be
-neither frame.
-**Mitigation:** Confidence threshold returns an explicit low-confidence response
-instead of a label, and suppresses the retailer link. Planned: add a third
-"other" class trained on negative examples
-(`docs/sop-add-negative-class.md`).
-**Residual Risk:** Medium. The threshold limits exposure but cannot eliminate it;
-a misclassification above the threshold still surfaces as a confident answer.
+**Description:** The model assigns visually similar bikes to a target frame with
+high confidence. Validated: a Trek Slash returns santa_cruz_nomad at 0.873, a
+road bike at 0.765. The `other` class separates bikes from non-bikes but not
+target frames from other full-suspension bikes.
+**Impact:** High. A confident wrong answer is indistinguishable from a correct
+one to any downstream consumer, and in this build it surfaces a retail link for
+the wrong product.
+**Likelihood:** High — most real-world uploads would be neither target frame.
+**Mitigation attempted:** A third `other` class was added (53 negative images),
+which resolved the non-bike case but not the similar-bike case. A confidence
+threshold was found to be ineffective: correct predictions scored 0.694–0.707
+while incorrect predictions scored 0.765–0.873, so no threshold separates them.
+**Planned mitigation:** Expand `other` to 120–150 images weighted toward
+full-suspension trail and enduro bikes, particularly other Santa Cruz models.
+**Residual Risk:** High, and accepted for the MVP. Documented rather than
+mitigated. Not suitable for use beyond demonstration in its current state.
 
 ## Risk 9: Generated Code Reporting False Completion
 **Description:** AI-assisted development produced code and status entries
@@ -110,3 +111,17 @@ still appear plausible.
 preprocessing settings from `metadata_properties.json` rather than hardcoding
 them. Validation re-run after every export.
 **Residual Risk:** Low.
+
+## Risk 11: Training Metrics Not Representative of Deployment Performance
+**Description:** Custom Vision computes precision and recall by cross-validation
+over the training images. These figures describe performance on the training
+distribution, not on arbitrary user input. Validated: 89.3% reported versus 2 of
+5 clean passes on held-out images.
+**Impact:** High if acted on. A reported figure taken at face value would have
+led to shipping a model that fails on the most common real-world case.
+**Likelihood:** High — this applies to any model evaluated only by its training
+platform's own metrics.
+**Mitigation:** Held-out validation against independently sourced images before
+any status claim (`docs/validation-results.md`). Re-run after every retrain
+against the same image set for comparability.
+**Residual Risk:** Low once held-out validation is standard practice.
